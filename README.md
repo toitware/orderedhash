@@ -12,6 +12,12 @@ synchronization.
 ## Usage
 
 ```
+package main
+
+import (
+	"github.com/toitware/orderedhash"
+)
+
 // Implements orderedhash.EqualityRelation
 type MyClassEquality struct {
 }
@@ -24,22 +30,22 @@ func (_ MyClassEquality) Equals(a interface{}, b interface{}) bool {
 
 func (_ MyClassEquality) Hash(a interface{}) int {
 	object := a.(MyClass)
-    return object.Hash()
+	return object.Hash()
 }
 
-main() {
-    s := orderedhash.NewSet(MyClassEquality{})
-    s.Add(NewMyClass(42))
-    s.Add(NewMyClass(103))
-    for _, element := range s.Entries() {
-        element.Foo()
-    }
+func main() {
+	s := orderedhash.NewSet(MyClassEquality{})
+	s.Add(NewMyClass(42))
+	s.Add(NewMyClass(103))
+	for _, element := range s.Entries() {
+		element.(MyClass).Foo()
+	}
 
-    m := orderedhash.NewMap(MyClassEquality{})
-    m.Set(NewMyClass(42), "FortyTwo")
-    m.Set(NewMyClass(103), "OneHundredAndThree")
-    for _, key := range m.Entries() {
-        Bar(key, m.Get(key))
-    }
+	m := orderedhash.NewMap(MyClassEquality{})
+	m.Set(NewMyClass(42), "FortyTwo")
+	m.Set(NewMyClass(103), "OneHundredAndThree")
+	for _, key := range m.Entries() {
+		Bar(key, m.Get(key))
+	}
 }
 ```
