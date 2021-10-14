@@ -11,6 +11,7 @@ synchronization.
 
 ## Usage
 
+```
 // Implements orderedhash.EqualityRelation
 type MyClassEquality struct {
 }
@@ -41,3 +42,4 @@ main() {
         Bar(key, m.Get(key))
     }
 }
+```

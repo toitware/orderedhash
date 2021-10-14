@@ -316,12 +316,10 @@ func (o *orderedHash) Entries() []interface{} {
 	if o.len == len(o.backing) {
 		return o.backing
 	}
-	result := make([]interface{}, o.len)
-	i := 0
+	result := make([]interface{}, 0, o.len)
 	for _, entry := range o.backing {
 		if entry != nil {
-			result[i] = entry
-			i = i + 1
+            result = append(result, entry)
 		}
 	}
 	return result
@@ -332,12 +330,10 @@ func (o *OrderedMap) Values() []interface{} {
 	if o.len == len(o.valueBacking) {
 		return o.valueBacking
 	}
-	result := make([]interface{}, o.len)
-	i := 0
+	result := make([]interface{}, 0, o.len)
 	for _, entry := range o.valueBacking {
 		if entry != nil {
-			result[i] = entry
-			i = i + 1
+            result = append(result, entry)
 		}
 	}
 	return result
