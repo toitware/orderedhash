@@ -114,6 +114,7 @@ func TestAll(t *testing.T) {
 	testMap(t, m)
 	m2 := newStressMap()
 	testMap(t, m2)
+	checkPreallocatedNotModified(t)
 }
 
 func testSet(t *testing.T, s *OrderedSet) {
@@ -167,4 +168,12 @@ func testMap(t *testing.T, m *OrderedMap) {
 	checkMap(t, m, []string{"Fizz", "Buzz", "Foo", "Bar"})
 	m.Set("Foo", "Bar2")
 	checkMap(t, m, []string{"Fizz", "Buzz", "Foo", "Bar2"})
+}
+
+func checkPreallocatedNotModified(t *testing.T) {
+	for i, value := range preallocated {
+		if value != i {
+			t.Fatal("Modified")
+		}
+	}
 }
