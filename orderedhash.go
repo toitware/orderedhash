@@ -28,50 +28,57 @@ type orderedHash struct {
 	len         int
 }
 
-// An insertion-ordered hash set with customizable equality function.
-type OrderedSet struct {
-	orderedHash
-}
-
-// An insertion-ordered hash map with customizable equality function.
-type OrderedMap struct {
+type orderedMap struct {
 	orderedHash
 	valueBacking []interface{}
 }
 
+// An insertion-ordered hash set with customizable equality function.
+type OrderedSet = *orderedHash
+
+// An insertion-ordered hash map with customizable equality function.
+type OrderedMap = *orderedMap
+
 // Create an empty insertion-ordered set with customized equality function.
-func NewSet(relation EqualityRelation) *OrderedSet {
-	new := OrderedSet{
-		orderedHash{
-			hashToIndex: make(map[int][]int),
-			backing:     []interface{}{},
-			equality:    relation,
-		},
+// Like the built-in maps in Go, these are reference objects that can't
+// be passed by value.
+func NewSet(relation EqualityRelation) OrderedSet {
+	new := orderedHash{
+		hashToIndex: make(map[int][]int),
+		backing:     []interface{}{},
+		equality:    relation,
 	}
 	return &new
 }
 
 // Create an empty insertion-ordered map with customized equality function.
-func NewMap(relation EqualityRelation) *OrderedMap {
-	new := OrderedMap{
-		orderedHash: orderedHash{
-			hashToIndex: make(map[int][]int),
-			backing:     []interface{}{},
-			equality:    relation,
-		},
+// Like the built-in maps in Go, these are reference objects that can't
+// be passed by value.
+func NewMap(relation EqualityRelation) OrderedMap {
+	h := orderedHash{
+		hashToIndex: make(map[int][]int),
+		backing:     []interface{}{},
+		equality:    relation,
+	}
+	new := orderedMap{
+		orderedHash:  h,
 		valueBacking: []interface{}{},
 	}
 	return &new
 }
 
-// Get the number of elements in the set or the number of key-value pairs in
-// the map.
-func (o *orderedHash) Len() int {
+// Get the number of elements in the set.
+func (o OrderedSet) Len() int {
+	return o.len
+}
+
+// Get the the number of key-value pairs in the map.
+func (o OrderedMap) Len() int {
 	return o.len
 }
 
 // Add the element to the set if it does not already contain an equal element.
-func (o *OrderedSet) Add(element interface{}) {
+func (o OrderedSet) Add(element interface{}) {
 	if element == nil {
 		panic("Can't add nil to a set")
 	}
@@ -110,7 +117,7 @@ func (o *OrderedSet) Add(element interface{}) {
 
 // Add the key and value to the map.  If the map already contains an
 // equal key then the value is overwritten, but the key is unchanged.
-func (o *OrderedMap) Set(key interface{}, value interface{}) {
+func (o OrderedMap) Set(key interface{}, value interface{}) {
 	if key == nil || value == nil {
 		panic("Can't add nil to a map")
 	}
@@ -198,7 +205,7 @@ func (o *orderedHash) GetKey(element interface{}) interface{} {
 
 // Get the value corresponding to a key.  Returns nil if an equal
 // key is not found in the map.
-func (o *OrderedMap) Get(key interface{}) interface{} {
+func (o OrderedMap) Get(key interface{}) interface{} {
 	if key == nil {
 		panic("Can't use nil as a map key")
 	}
@@ -222,7 +229,7 @@ func (o *OrderedMap) Get(key interface{}) interface{} {
 // Remove an equal element from a set.
 // If an element is removed and then later re-added, its iteration order
 // is moved to the end.
-func (o *OrderedSet) Remove(element interface{}) {
+func (o OrderedSet) Remove(element interface{}) {
 	if element == nil {
 		panic("Can't use nil as a set element")
 	}
@@ -253,7 +260,7 @@ func (o *OrderedSet) Remove(element interface{}) {
 // Remove an equal key and its associated value from a map.
 // If a key is removed and then later re-added, its iteration order
 // is moved to the end.
-func (o *OrderedMap) Remove(key interface{}) {
+func (o OrderedMap) Remove(key interface{}) {
 	if key == nil {
 		panic("Can't use nil as a map key")
 	}
@@ -283,10 +290,20 @@ func (o *OrderedMap) Remove(key interface{}) {
 }
 
 // If the set already contains an equal element, replace it with the given one.
+// The new element or key inherites the insertion order of the element or key
+// it replaces.
+func (o OrderedSet) ReplaceWith(element interface{}) {
+	o.replaceWith(element)
+}
+
 // If the map already contains an equal key, replace it with the given one.
 // The new element or key inherites the insertion order of the element or key
 // it replaces.
-func (o *orderedHash) ReplaceWith(element interface{}) {
+func (o OrderedMap) ReplaceWith(element interface{}) {
+	o.replaceWith(element)
+}
+
+func (o *orderedHash) replaceWith(element interface{}) {
 	if element == nil {
 		panic("Can't use nil as a set element or a map key")
 	}
@@ -308,32 +325,44 @@ func (o *orderedHash) ReplaceWith(element interface{}) {
 	}
 }
 
-// Iterable slice of the elements in the set or the keys in a map.
-// Iteration is in insertion order.  If the set or map is modified
+// Iterable slice of the elements in the set.
+// Iteration is in insertion order.  If the set is modified
 // during iteration the changes may or may not be reflected in this
 // slice.
-func (o *orderedHash) Entries() []interface{} {
+func (o OrderedSet) Entries() []interface{} {
+	return o.entries()
+}
+
+// Iterable slice of the keys in the map.
+// Iteration is in insertion order.  If the map keys are modified
+// during iteration the changes may or may not be reflected in this
+// slice.
+func (o OrderedMap) Entries() []interface{} {
+	return o.entries()
+}
+
+func (o *orderedHash) entries() []interface{} {
 	if o.len == len(o.backing) {
 		return o.backing
 	}
 	result := make([]interface{}, 0, o.len)
 	for _, entry := range o.backing {
 		if entry != nil {
-            result = append(result, entry)
+			result = append(result, entry)
 		}
 	}
 	return result
 }
 
 // Iterable slice of the values in a map.
-func (o *OrderedMap) Values() []interface{} {
+func (o OrderedMap) Values() []interface{} {
 	if o.len == len(o.valueBacking) {
 		return o.valueBacking
 	}
 	result := make([]interface{}, 0, o.len)
 	for _, entry := range o.valueBacking {
 		if entry != nil {
-            result = append(result, entry)
+			result = append(result, entry)
 		}
 	}
 	return result
@@ -358,12 +387,12 @@ func (_ StringEquality) Hash(a interface{}) int {
 	return h
 }
 
-func NewStringSet() *OrderedSet {
+func NewStringSet() OrderedSet {
 	new := NewSet(StringEquality{})
 	return new
 }
 
-func NewStringMap() *OrderedMap {
+func NewStringMap() OrderedMap {
 	new := NewMap(StringEquality{})
 	return new
 }
