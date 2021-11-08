@@ -21,17 +21,17 @@ func (_ AllSameHashEquality) Hash(a interface{}) int {
 	return 0
 }
 
-func newStressSet() *OrderedSet {
+func newStressSet() OrderedSet {
 	new := NewSet(AllSameHashEquality{})
 	return new
 }
 
-func newStressMap() *OrderedMap {
+func newStressMap() OrderedMap {
 	new := NewMap(AllSameHashEquality{})
 	return new
 }
 
-func checkSet(t *testing.T, s *OrderedSet, expect []string) {
+func checkSet(t *testing.T, s OrderedSet, expect []string) {
 	if s.Contains("") {
 		t.Fatal("We did not expect the empty string")
 	}
@@ -61,7 +61,7 @@ func checkSet(t *testing.T, s *OrderedSet, expect []string) {
 	}
 }
 
-func checkMap(t *testing.T, m *OrderedMap, expect []string) {
+func checkMap(t *testing.T, m OrderedMap, expect []string) {
 	if m.Contains("") {
 		t.Fatal("We did not expect the empty string")
 	}
@@ -116,7 +116,7 @@ func TestAll(t *testing.T) {
 	testMap(t, m2)
 }
 
-func testSet(t *testing.T, s *OrderedSet) {
+func testSet(t *testing.T, s OrderedSet) {
 	checkSet(t, s, []string{})
 	s.Add("Foo")
 	checkSet(t, s, []string{"Foo"})
@@ -151,7 +151,7 @@ func testSet(t *testing.T, s *OrderedSet) {
 	checkSet(t, s, []string{})
 }
 
-func testMap(t *testing.T, m *OrderedMap) {
+func testMap(t *testing.T, m OrderedMap) {
 	checkMap(t, m, []string{})
 	m.Set("Foo", "Bar")
 	checkMap(t, m, []string{"Foo", "Bar"})
